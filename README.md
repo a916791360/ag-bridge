@@ -84,9 +84,13 @@ AG Bridge 在这一版做了以下改造（完整清单见 [与上游的差异](
 
 ### 每次启动前，务必先退出 Antigravity
 
-Antigravity 是 Electron 应用，有**单实例机制**：当它已经在运行时，双击启动器只会把已有窗口调到前台，注入的 `--proxy-server` 参数**不会**传给那个已存在的进程——启动器会正常退出，看起来像成功了，实际什么也没注入。
+Antigravity 是 Electron 应用，有**单实例机制**：`--proxy-server` 只在进程启动那一刻生效，**没法给一个已经在跑的实例补加**。
 
-所以正确顺序永远是：**先 `Command-Q` 完全退出 Antigravity → 再双击 AG Bridge**。
+所以启动器会先检测目标 App 是否在运行。**如果在运行，它会直接弹窗提示并退出（退出码 1），不会静默失败**：
+
+> Antigravity 已在运行，无法为现有进程补加代理。请先用 Command-Q 完全退出 Antigravity，再点击本启动器。
+
+正确顺序永远是：**先 `Command-Q` 完全退出 Antigravity → 再双击 AG Bridge**。
 
 想确认这一次到底有没有注入成功，执行：
 
