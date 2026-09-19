@@ -38,7 +38,10 @@ AG Bridge 在这一版做了以下改造（完整清单见 [与上游的差异](
 
 - macOS 12 或更高版本。
 - 已安装 Antigravity IDE（`com.google.antigravity-ide`）或 Antigravity（`com.google.antigravity`）。
-- 本机已有可用的 HTTP/Mixed 或 SOCKS5 代理。
+- 本机已有可用的 HTTP/Mixed 或 SOCKS5 代理（例如 Clash、Mihomo、Surge 等客户端已启动）。
+
+> AG Bridge **本身不提供代理**，也不是代理客户端。它只负责把「你已有的本机代理」注入给 Antigravity。
+> 没有代理客户端、或者没有安装 Antigravity 时，启动器会明确提示并退出。
 
 本项目使用 macOS 自带的 Bash 3.2、`curl`、`nc`、`plutil`、`osascript` 和 `open`，运行时不需要安装第三方依赖。
 
@@ -53,7 +56,13 @@ AG Bridge 在这一版做了以下改造（完整清单见 [与上游的差异](
 
 3. 解压后，将 `AG Bridge.app` 拖入 `/Applications`。
 4. 确保代理客户端正在运行，并用 `Command-Q` 完全退出已经打开的 Antigravity。
-5. 首次启动时右键 App 并选择“打开”。如果 macOS 仍然阻止启动，请前往“系统设置 → 隐私与安全性”，确认打开该 App。
+5. 首次启动时右键 App 并选择“打开”。如果 macOS 仍然阻止启动，请前往“系统设置 → 隐私与安全性”，点“仍要打开”。
+
+   或者在终端里执行下面这行，直接去掉下载隔离标记（效果等同，适合习惯命令行的同学）：
+
+   ```bash
+   xattr -dr com.apple.quarantine "/Applications/AG Bridge.app"
+   ```
 
 ### 关于签名与 Gatekeeper
 
@@ -72,6 +81,20 @@ AG Bridge 在这一版做了以下改造（完整清单见 [与上游的差异](
 从上游 Antigravity Bridge 或更早的 Antigravity Proxy 升级时，旧配置会在首次运行时自动复制到新目录，旧配置不会被删除。
 
 > **重要**：以后每次都要从这个启动器打开 Antigravity。直接双击 Antigravity 本身的图标不会带代理。
+
+### 每次启动前，务必先退出 Antigravity
+
+Antigravity 是 Electron 应用，有**单实例机制**：当它已经在运行时，双击启动器只会把已有窗口调到前台，注入的 `--proxy-server` 参数**不会**传给那个已存在的进程——启动器会正常退出，看起来像成功了，实际什么也没注入。
+
+所以正确顺序永远是：**先 `Command-Q` 完全退出 Antigravity → 再双击 AG Bridge**。
+
+想确认这一次到底有没有注入成功，执行：
+
+```bash
+pgrep -lf "proxy-server=http" | cut -c1-240
+```
+
+有输出表示注入生效（能看到 `--proxy-server=http://127.0.0.1:<端口>`）；没有任何输出表示这次不是启动器拉起来的，退回上一步重来。
 
 主动重新配置：
 
